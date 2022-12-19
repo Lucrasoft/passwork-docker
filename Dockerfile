@@ -67,3 +67,5 @@ RUN rm -f -r /tmp/*
 COPY entrypoint /usr/local/bin/
 RUN chmod 775 /usr/local/bin/entrypoint
 ENTRYPOINT ["entrypoint"]
+
+CMD ["apache2-foreground"]
