@@ -62,3 +62,7 @@ RUN a2enmod rewrite
 # clean up pecl compiles
 RUN apt-get clean 
 RUN rm -f -r /tmp/*
+
+# a new entrypoint which also starts cron
+COPY entrypoint /usr/local/bin/
+ENTRYPOINT ["entrypoint"]
