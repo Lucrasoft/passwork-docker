@@ -16,17 +16,21 @@ You must provide 2 volumes.
 
 Sample usage
 ```
-docker create \ 
+docker run \ 
   -v ./config.ini:/var/www/app/config/config.ini \ 
   -v ./keys:/var/www/app/keys \ 
-  -p:8080:80 \
-  ghcr.io/lucrasoft/passwork-docker:0.1.3
+  -p 8080:80 \
+  ghcr.io/lucrasoft/passwork-docker:0.1.4
 ```
 
 ## Mongo
 The required MongoDB is not included in this docker and the setup assumes you provide it in a seperate docker service. 
 Please use the provided docker-compose file as a starting point for deployment.
 
+To manually add the mongodb on your docker host:
+```
+docker run -v ./database:/data/db -p 27017:27017 mongo:5.0.14-focal
+```
 
 ## SSL
 The container exposes http (port 80) only. 
