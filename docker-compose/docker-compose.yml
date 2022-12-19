@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  passwork: 
+    image: ghcr.io/lucrasoft/passwork-docker:0.1
+    depends_on:
+      - mongo
+    ports:
+      - 8080:80
+    volumes:
+      #please update the provided config.ini with your own secret! 
+      - ./config.ini:/var/www/app/config/config.ini
+      - ./keys:/var/www/app/keys
+    networks:
+      - pw
+
+  mongo:
+    image:
+      mongo:5.0.14-focal
+    ports:
+    - 27017:27017
+    volumes:
+      - ./database:/data/db
+    networks:
+      - pw
+
+networks:
+  pw:
+
+
