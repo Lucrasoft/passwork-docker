@@ -65,4 +65,5 @@ RUN rm -f -r /tmp/*
 
 # a new entrypoint which also starts cron
 COPY entrypoint /usr/local/bin/
+RUN chmod 775 /usr/local/bin/entrypoint
 ENTRYPOINT ["entrypoint"]
