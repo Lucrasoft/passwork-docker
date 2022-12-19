@@ -20,7 +20,7 @@ docker run \
   -v ./config.ini:/var/www/app/config/config.ini \ 
   -v ./keys:/var/www/app/keys \ 
   -p 8080:80 \
-  ghcr.io/lucrasoft/passwork-docker:0.1.4
+  ghcr.io/lucrasoft/passwork-docker:0.1.5
 ```
 
 ## Mongo
