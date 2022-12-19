@@ -1,8 +1,8 @@
 # passwork-docker
-A Docker file for Passwork Pro.
+A Docker file for [Passwork Pro](https://passwork.pro/).
 
-It solves the problem of the official Passwork dockers, where you need a complete git repo on your host/volume.
-This Passwork Git repo is preloaded into this docker image. You still require an official license and key from Passwork!
+It solves the problem of the official Passwork dockers, where you need to download the complete git repo on your host/volume.
+The Passwork Git repo is preloaded into this docker image. You still require an official license and key from Passwork!
 
 Image is based on the official php apache 8.0 docker base. 
 
@@ -29,7 +29,7 @@ Please use the provided docker-compose file as a starting point for deployment.
 
 
 ## SSL
-The container exposes http (port 80).  
+The container exposes http (port 80) only. 
 To support SSL, you must provide this service via a reverse proxy, for example: Traefik or Nginx.
 
 
