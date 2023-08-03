@@ -25,6 +25,6 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: ghcr.io/lucrasoft/passwork-docker:0.1.${{ github.run_number }}
+        tags: ghcr.io/lucrasoft/passwork-docker:6.0.${{ github.run_number }}
         secrets: |
             "mysecret=https://${{ secrets.PASSWORK_GIT_USERNAME }}:${{ secrets.PASSWORK_GIT_PASSWORD }}@passwork.download"
