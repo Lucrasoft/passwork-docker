@@ -17,7 +17,7 @@ RUN --mount=type=secret,id=mysecret,dst=/var/secret/mysecret \
     && git config --system credential.helper store \
     && git clone https://passwork.download/passwork/passwork.git tmp \
     && cd /home/tmp \
-    && git checkout v5 \
+    && git checkout v6 \
     && cd /home
 
 RUN pecl install mongodb \
