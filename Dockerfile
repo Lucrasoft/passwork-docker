@@ -62,6 +62,8 @@ RUN echo '* * * * * bash -l -c "php /var/www/app/tools/run-scheduled-tasks.php"'
 RUN crontab -u root /etc/mycron
 
 RUN a2enmod rewrite
+# Requested by WvB on Dec23 ; include secure cookie headers
+RUN a2enmod headers        
 # clean up pecl compiles
 RUN apt-get clean 
 RUN rm -f -r /tmp/*
