@@ -15,11 +15,11 @@ RUN apt-get update \
     && apt-get install -y apt-transport-https lsb-release ca-certificates \
     && wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg \
     && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list \
-    && apt-get update
+    && apt-get update \
     && apt install -y php8.3 libapache2-mod-php8.3 php8.3-cli php8.3-bcmath php8.3-fpm php8.3-curl php8.3-gd php8.3-intl php8.3-ldap php8.3-mbstring php8.3-mysql php8.3-opcache php8.3-pgsql php8.3-soap php8.3-zip php8.3-sqlite3 php8.3-xml \
     && apt install -y php8.3 libapache2-mod-php8.3 php8.3-cli php8.3-bcmath php8.3-fpm php8.3-curl php8.3-gd php8.3-intl php8.3-ldap php8.3-mbstring php8.3-mysql php8.3-opcache php8.3-pgsql php8.3-soap php8.3-zip php8.3-sqlite3 php8.3-xml
 
-RUN echo "extension=mongodb.so" | tee /etc/php/8.3/apache2/conf.d/20-mongodb.ini
+RUN echo "extension=mongodb.so" | tee /etc/php/8.3/apache2/conf.d/20-mongodb.ini \
     && echo "extension=mongodb.so" | tee /etc/php/8.3/cli/conf.d/20-mongodb.ini \
     && opcache_path=$(php --ini | grep opcache | awk '{print $NF}' | sed 's/,//') \
     && /bin/echo -e 'opcache.enable=1' >> $opcache_path \
@@ -33,7 +33,7 @@ RUN echo "extension=mongodb.so" | tee /etc/php/8.3/apache2/conf.d/20-mongodb.ini
     && sed -i '/session.cookie_secure =/c session.cookie_secure = On' /etc/php/8.3/apache2/php.ini
 
 RUN curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor \
-    && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/6.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+    && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/6.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list \
     && apt-get update \
     && apt-get install -y mongodb-org \
     && systemctl start mongod.service \
