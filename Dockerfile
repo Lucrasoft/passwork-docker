@@ -39,8 +39,7 @@ RUN curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg -o /usr/s
     && systemctl start mongod.service \
     && systemctl enable mongod.service
 
-#RUN --mount=type=secret,id=mysecret,dst=/var/secret/mysecret \
-RUN export cert=$(cat /var/secret/mysecret) \
+RUN --mount=type=secret,id=mysecret,dst=/var/secret/mysecret \
     && curl -o "/var/www/passwork.zip" "https://portal.passwork.pro/api/download?rc=yes&apikey=$cert" \
     && unzip /var/www/passwork.zip -d /var/www/ \
     && find /var/www/ -type d -exec chmod 755 {} \; \
