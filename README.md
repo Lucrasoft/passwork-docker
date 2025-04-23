@@ -8,19 +8,21 @@ Image is based on the official php apache 8.0 docker base.
 
 ## Usage 
 
-You must provide 2 volumes.
-- One is the `config.ini` which you can download from this repo as a starting point. Update the secret!
-- One is the folder 'keys', where the system stores the provided license key.
+You must provide one volume to the passwork container, as you can see in the docker-compose file
 
-> Make sure you edit the secret in `config.ini` file before starting the container and setting up the mongodb!
+```
+    volumes:
+      # the init folder will contain (after initial setup) the generated keys and the config.env file
+      - ./init:/server/init
+```
+
 
 Sample usage
 ```
 docker run \ 
-  -v ./config.ini:/var/www/app/config/config.ini \ 
-  -v ./keys:/var/www/app/keys \ 
-  -p 8080:80 \
-  ghcr.io/lucrasoft/passwork-docker:0.1.5
+  -v ./init:/server/init 
+  -p 7443:7443 \
+  ghcr.io/lucrasoft/passwork-docker:7.0.10
 ```
 
 ## Mongo
