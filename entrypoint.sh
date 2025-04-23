@@ -28,11 +28,6 @@ echo "* * * * * cd /server/www && php bin/console tasks:run" > /server/schedule
 chown -R 1001 /server/php /run/php /server/log/php /server/schedule /server/init
 chown -R 1001 /server/nginx /server/ssl /server/www/public /server/log /server/logs
 
-# #this was extremely slow.. + unncessary! 
-# #find /server/www \! -user $APP_UID -exec chown $APP_UID {} +
-# find /server/logs \! -user $APP_UID -exec chown $APP_UID {} +
-
-
 # PHP cache warmup (ignore failure but show message)
 cd /server/www && gosu "$PUSER" php bin/console cache:warmup || echo "⚠️  PHP cache warmup skipped or failed"
 

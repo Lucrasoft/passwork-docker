@@ -1,28 +1,30 @@
 version: "3.8"
 
 services:
-  passwork: 
-    image: ghcr.io/lucrasoft/passwork-docker:0.1.5
+
+  passwork:
+    image: ghcr.io/lucrasoft/passwork-docker:7.0.1
+    restart: always
     depends_on:
       - mongo
     ports:
-      - 8080:80
+      - 7443:7443
     volumes:
-      #please update the provided config.ini with your own secret! 
-      - ./config.ini:/var/www/app/config/config.ini
-      - ./keys:/var/www/app/keys
+      # the init folder will contain (after initial setup) the generated keys and the config.env file
+      - ./init:/server/init
     networks:
       - pw
 
   mongo:
-    image:
-      mongo:5.0.14-focal
+    image: percona/percona-server-mongodb:6.0.20
+    environment:
+    - PERCONA_TELEMETRY_DISABLE=1
     ports:
     - 27017:27017
     volumes:
-      - ./database:/data/db
+    - ./database:/data/db
     networks:
-      - pw
+    - pw
 
 networks:
   pw:

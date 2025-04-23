@@ -31,7 +31,7 @@ jobs:
 
     - name: Read and parse version
       run: |
-        raw_version=$(cat /passwork/version)
+        raw_version=$(cat passwork/version)
         major=$((10#${raw_version:0:2}))
         minor=$((10#${raw_version:2:2}))
         patch=$((10#${raw_version:4:4}))
