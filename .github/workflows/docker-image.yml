@@ -25,6 +25,7 @@ jobs:
       env:
         API_KEY: ${{ secrets.PASSWORK_API_KEY }}
       run: |
+        mkdir passwork
         curl -o passwork.zip "https://portal.passwork.pro/api/download?rc=yes&apikey=$API_KEY"
         unzip passwork.zip -d passwork
         chmod -R 777 passwork
@@ -39,10 +40,13 @@ jobs:
         echo "Parsed version: $version"
         echo "VERSION=$version" >> $GITHUB_ENV
 
-  
+    - name: List passwork folder
+      run: ls -la passwork
+
     - name: Build and push
       uses: docker/build-push-action@v3
       with:
+        context: .
         push: true
         tags: ghcr.io/lucrasoft/passwork-docker:${{ env.VERSION }}
    
