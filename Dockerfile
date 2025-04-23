@@ -82,7 +82,7 @@ COPY conf/* /server/php-default/
 COPY entrypoint.sh /entrypoint.sh
 
 # Copy the latest version of passwork
-COPY passwork/* /server/www/
+COPY /tmp/passwork/* /server/www/
 RUN find /server/www/ -type d -exec chmod 755 {} \; \
     && find /server/www/ -type f -exec chmod 644 {} \; \
     && chown -R 1001:1001 /server/www/

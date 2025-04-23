@@ -26,12 +26,12 @@ jobs:
         API_KEY: ${{ secrets.PASSWORK_API_KEY }}
       run: |
         curl -o passwork.zip "https://portal.passwork.pro/api/download?rc=yes&apikey=$API_KEY"
-        unzip passwork.zip -d passwork
-        chmod -R u+rwX passwork
+        unzip passwork.zip -d /tmp/passwork
+        chmod -R 777 /tmp/passwork
 
     - name: Read and parse version
       run: |
-        raw_version=$(cat passwork/version)
+        raw_version=$(cat /tmp/passwork/version)
         major=$((10#${raw_version:0:2}))
         minor=$((10#${raw_version:2:2}))
         patch=$((10#${raw_version:4:4}))
