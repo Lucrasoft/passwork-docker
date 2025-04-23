@@ -80,13 +80,13 @@ RUN rm -rf /etc/php/8.3/cli/php.ini \
 COPY conf/* /server/php/
 COPY conf/* /server/php-default/
 COPY entrypoint.sh /entrypoint.sh
+RUN chmod 755 /entrypoint.sh
 
 # Copy the latest version of passwork
-COPY passwork/* /server/www/
+COPY passwork/ /server/www/
 RUN find /server/www/ -type d -exec chmod 755 {} \; \
     && find /server/www/ -type f -exec chmod 644 {} \; \
     && chown -R 1001:1001 /server/www/
-
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["supercronic", "/server/schedule"]

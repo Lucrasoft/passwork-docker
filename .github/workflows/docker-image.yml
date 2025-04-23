@@ -39,14 +39,18 @@ jobs:
         version="${major}.${minor}.${patch}"
         echo "Parsed version: $version"
         echo "VERSION=$version" >> $GITHUB_ENV
+        build_tag="${version}-${GITHUB_RUN_NUMBER}"
+        echo "TAG_WITH_BUILD=$build_tag" >> $GITHUB_ENV
 
-    - name: List passwork folder
-      run: ls -la passwork
+    # - name: List passwork folder
+    #   run: ls -la passwork
 
     - name: Build and push
       uses: docker/build-push-action@v3
       with:
         context: .
         push: true
-        tags: ghcr.io/lucrasoft/passwork-docker:${{ env.VERSION }}
-   
+        tags: 
+        - ghcr.io/lucrasoft/passwork-docker:${{ env.TAG_WITH_BUILD }}
+        - ghcr.io/lucrasoft/passwork-docker:${{ env.VERSION }}
+        - ghcr.io/lucrasoft/passwork-docker:latest
