@@ -6,7 +6,7 @@
 # - copy the pre-build extensions
 
 # syntax = docker/dockerfile:1.2
-FROM php:8.0-apache-bullseye AS BUILD
+FROM php:8.1-apache-bullseye AS BUILD
 LABEL AUTHOR Lucrasoft
 WORKDIR /home
 
@@ -22,7 +22,7 @@ RUN --mount=type=secret,id=mysecret,dst=/var/secret/mysecret \
 
 RUN pecl install mongodb \
     && pecl install psr \
-    && pecl install phalcon-5.0.0beta3
+    && pecl install phalcon-5.0.0
 
 RUN docker-php-ext-install bcmath
 
@@ -34,7 +34,7 @@ RUN docker-php-ext-install ldap
 RUN rm -r -f /home/tmp/.git
 
 #final build
-FROM php:8.0-apache-bullseye
+FROM php:8.1-apache-bullseye
 
 #
 RUN apt-get update \
