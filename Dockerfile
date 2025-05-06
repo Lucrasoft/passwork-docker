@@ -41,7 +41,7 @@ RUN apt-get update \
     && apt-get install cron -y
 
 # copy the builded extensions
-COPY --from=BUILD /usr/local/lib/php/extensions/no-debug-non-zts-20200930/ /usr/local/lib/php/extensions/no-debug-non-zts-20200930/
+# COPY --from=BUILD /usr/local/lib/php/extensions/no-debug-non-zts-20200930/ /usr/local/lib/php/extensions/no-debug-non-zts-20200930/
 #
 RUN echo "extension=mongodb.so" | tee /usr/local/etc/php/conf.d/20-mongodb.ini \
     && echo "extension=psr.so" | tee /usr/local/etc/php/conf.d/20-psr.ini \
