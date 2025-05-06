@@ -1,92 +1,76 @@
-FROM ubuntu:jammy-20250404
+# Multistage docker file 
+# In the BUILD stage we 
+# - get the main application with git
+# - build all the required extensions
+# In the final stage we 
+# - copy the pre-build extensions
 
-LABEL AUTHOR="Lucrasoft"
+# syntax = docker/dockerfile:1.2
+FROM php:8.0-apache-bullseye AS BUILD
+LABEL AUTHOR Lucrasoft
+WORKDIR /home
 
-ARG SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.29/supercronic-linux-amd64
-ARG SUPERCRONIC_SHA1SUM=cd48d45c4b10f3f0bfdd3a57d054cd05ac96812b
-ARG GOSU_VERSION=1.17
+RUN --mount=type=secret,id=mysecret,dst=/var/secret/mysecret \ 
+    apt-get update \
+    && apt-get install git -y \
+    && cat /var/secret/mysecret > ~/.git-credentials \
+    && git config --system credential.helper store \
+    && git clone https://passwork.download/passwork/passwork.git tmp \
+    && cd /home/tmp \
+    && git checkout v6 \
+    && cd /home
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV INIT_DIR="/server/init/"
-ENV FILES_DIR="/server/"
+RUN pecl install mongodb \
+    && pecl install psr \
+    && pecl install phalcon-5.0.0beta3
 
-# NGINX part
+RUN docker-php-ext-install bcmath
+
+#the ldap extensions requires ldap headers to be available.
+RUN apt-get install -y libldb-dev libldap2-dev 
+RUN docker-php-ext-install ldap
+
+#clean up the git files so we don't copy them into the final image
+RUN rm -r -f /home/tmp/.git
+
+#final build
+FROM php:8.0-apache-bullseye
+
+#
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-       nginx 
+    && apt-get install cron -y
 
-RUN mkdir -p /server/nginx /server/nginx/extra /server/nginx-default /server/ssl /server/log/nginx /server/init
+# copy the builded extensions
+COPY --from=BUILD /usr/local/lib/php/extensions/no-debug-non-zts-20200930/ /usr/local/lib/php/extensions/no-debug-non-zts-20200930/
+#
+RUN echo "extension=mongodb.so" | tee /usr/local/etc/php/conf.d/20-mongodb.ini \
+    && echo "extension=psr.so" | tee /usr/local/etc/php/conf.d/20-psr.ini \
+    && echo "extension=phalcon.so" | tee /usr/local/etc/php/conf.d/30-phalcon.ini \
+    && echo "extension=bcmath.so" | tee /usr/local/etc/php/conf.d/40-bcmath.ini \
+    && echo "extension=ldap.so" | tee /usr/local/etc/php/conf.d/50-ldap.ini
 
-# instead of placing the files in nginx-default , we place them in nginx directly 
-COPY conf/nginx.conf /server/nginx/nginx.conf
-#COPY conf/nginx.conf.v6 /server/nginx-default/default.conf.old
-COPY conf/extra /server/nginx/extra
+COPY --from=BUILD /home/tmp/ /var/www/
 
-RUN mkdir -p /var/cache/nginx /var/lib/nginx /var/lib/nginx/body /var/log/nginx \ 
-    && chown -R 1001:1001 /var/cache/nginx /var/lib/nginx /var/log/nginx 
+RUN find /var/www/ -type d -exec chmod 755 {} \; 
+RUN find /var/www/ -type f -exec chmod 644 {} \; 
+RUN chown -R www-data:www-data /var/www/
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-       software-properties-common unzip ssmtp gnupg curl libldap-common 
-       
-    
-RUN gpg --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C \
-  && gpg --export --armor 4F4EA0AAE5267A6C | apt-key add - \
-  && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu jammy main" > /etc/apt/sources.list.d/ondrej-php.list
+COPY default.conf /etc/apache2/sites-enabled/000-default.conf
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-       php8.3-fpm php8.3-cli php8.3-dev php8.3-ldap php8.3-xml \
-       php8.3-bcmath php8.3-mbstring php8.3-mongodb php8.3-curl \
-       php8.3-opcache php8.3-readline php8.3-zip php8.3-intl rsyslog \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# setup background tasks with cron
+RUN echo '* * * * * bash -l -c "php /var/www/app/tools/run-scheduled-tasks.php"' > /etc/mycron
+RUN crontab -u root /etc/mycron
 
-RUN useradd -u 1001 -r -s /usr/sbin/nologin app_user
-RUN mkdir -p /server/logs /server/php /server/php-default /server/log/php /server/www /run/php /licenses/gosu /licenses/supercronic 
+RUN a2enmod rewrite
+# Requested by WvB on Dec23 ; include secure cookie headers
+RUN a2enmod headers        
+# clean up pecl compiles
+RUN apt-get clean 
+RUN rm -f -r /tmp/*
 
-RUN curl -fsSLO https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64 \
-    && curl -fsSLO https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc \
-    && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-    && gpg --batch --verify gosu-amd64.asc gosu-amd64 \
-    && rm -rf "$GNUPGHOME" gosu-amd64.asc \
-    && chmod +x gosu-amd64 \
-    && mv gosu-amd64 /usr/local/bin/gosu \
-    && curl -fsSL -o /licenses/gosu/LICENSE https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
+# a new entrypoint which also starts cron
+COPY entrypoint /usr/local/bin/
+RUN chmod 775 /usr/local/bin/entrypoint
+ENTRYPOINT ["entrypoint"]
 
-RUN curl -fsSLO "$SUPERCRONIC_URL" \
-  && echo "${SUPERCRONIC_SHA1SUM}  supercronic-linux-amd64" | sha1sum -c - \
-  && chmod +x supercronic-linux-amd64 \
-  && mv supercronic-linux-amd64 /usr/local/bin/supercronic \
-  && curl -fsSL -o /licenses/supercronic/LICENSE https://raw.githubusercontent.com/aptible/supercronic/master/LICENSE.md
-
-
-RUN rm -rf /etc/php/8.3/cli/php.ini \
-  && rm -rf /etc/php/8.3/fpm/php.ini \
-  && rm -rf /etc/php/8.3/fpm/php-fpm.conf \
-  && ln -s /server/php/cli-php.ini /etc/php/8.3/cli/php.ini \
-  && ln -s /server/php/fpm-php.ini /etc/php/8.3/fpm/php.ini \
-  && ln -s /server/php/www.pool /etc/php/8.3/fpm/www.conf \
-  && ln -s /server/php/php-fpm.conf /etc/php/8.3/fpm/php-fpm.conf \
-  && sed -i 's/mailhub=mail/mailhub=postfix/g' '/etc/ssmtp/ssmtp.conf' \
-  && sed -i 's/#FromLineOverride=YES/FromLineOverride=YES/g' '/etc/ssmtp/ssmtp.conf' \
-  && cp /etc/ldap/ldap.conf /server/php-default/ldap.conf \
-  && rm -rf /etc/ldap/ldap.conf \
-  && ln -s /server/php/ldap.conf /etc/ldap/ldap.conf \
-  && rm -rf /etc/rsyslog.conf \
-  && ln -s /server/php/rsyslog.conf /etc/rsyslog.conf
-
-COPY conf/* /server/php/
-COPY conf/* /server/php-default/
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod 755 /entrypoint.sh
-
-# Copy the latest version of passwork
-COPY passwork/ /server/www/
-RUN find /server/www/ -type d -exec chmod 755 {} \; \
-    && find /server/www/ -type f -exec chmod 644 {} \; \
-    && chown -R 1001:1001 /server/www/
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["supercronic", "/server/schedule"]
+CMD ["apache2-foreground"]
